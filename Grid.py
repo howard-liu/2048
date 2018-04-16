@@ -8,6 +8,7 @@ class Grid(object):
 
     def __init__(self):
         self.grid = [[0 for x in range(self.SIZE)] for y in range(self.SIZE)]
+        self.score = 0
 
     def __str__(self):
         out = ''
@@ -20,6 +21,10 @@ class Grid(object):
 
     @staticmethod
     def random_number():
+        """
+        In 2048, 1 in 10 new numbers are 4, others are 2
+        :return: Random number (2 or 4)
+        """
         scale = random.randint(1, 10)
         if scale == 1:
             return 4
@@ -27,6 +32,10 @@ class Grid(object):
             return 2
 
     def start_game(self):
+        """
+        Main gameplay engine
+        :return:
+        """
         rand_row1 = random.randint(0, self.SIZE - 1)
         rand_row2 = random.randint(0, self.SIZE - 1)
         rand_column1 = random.randint(0, self.SIZE - 1)
@@ -43,10 +52,15 @@ class Grid(object):
             self.move()
             print(str(self))
 
-        print('You died, your top number was: ' + str(self.find_score()))
+        print('You died, your score: ' + str(self.score))
+        return
 
     @staticmethod
     def ask_for_direction():
+        """
+        Simple helper to ask for input (can be changed to suit different input methods)
+        :return: direction that user inputted
+        """
         while True:
             print('Input WASD for swipe direction')
             direction = input()
@@ -61,57 +75,52 @@ class Grid(object):
             else:
                 print('Please input w,a,s, or d')
 
-    # def merge_all(self, row_or_col):
-    #     for x in range(self.SIZE):
-    #         self.merge(row_or_col, x)
-    #     return
-
-    # def merge(self, row_or_col, type_number):
-    #     a = 0
-    #     b = 0
-    #     if row_or_col == 'row':
-    #         a = 1
-    #     else:
-    #         b = 1
-    #     # Check for 0s in between what we want
-    #     for x in range(self.SIZE - 1):
-    #         for y in range(self.SIZE - x):
-    #             if self.grid[x * b + type_number * a][x * a + type_number * b] == \
-    #                     self.grid[(x + y) * b + type_number * a][(x + y) * a + type_number * b]:
-    #                 self.grid[x * b + type_number * a][x * a + type_number * b] = \
-    #                     self.grid[x * b + type_number * a][x * a + type_number * b] * 2
-    #                 self.grid[(x + y) * b + type_number * a][(x + y) * a + type_number * b] = 0
-    #                 break
-    #             elif self.grid[x * b + type_number * a][x * a + type_number * b] != \
-    #                     self.grid[(x + y) * b + type_number * a][(x + y) * a + type_number * b]:
-    #                 break
-    #     return
-
     def merge_all_rows_left(self):
+        """
+        Merges all rows toward the left
+        :return: Number of rows changed
+        """
         count = 0
         for x in range(self.SIZE):
             count += self.merge_row_left(x)
         return count
 
     def merge_all_rows_right(self):
+        """
+        Merges all rows toward the right
+        :return: Number of rows changed
+        """
         count = 0
         for x in range(self.SIZE):
             count += self.merge_row_right(x)
         return count
 
     def merge_all_columns_up(self):
+        """
+        Merges all columns upwards
+        :return: Number of columns changed
+        """
         count = 0
         for x in range(self.SIZE):
             count += self.merge_column_up(x)
         return count
 
     def merge_all_columns_down(self):
+        """
+        Merges all columns downards
+        :return: Number of columns changed
+        """
         count = 0
         for x in range(self.SIZE):
             count += self.merge_column_down(x)
         return count
 
     def merge_row_left(self, row_number):
+        """
+        Merges a single row left
+        :param row_number: Row number that is to be merged
+        :return: 1 if changes are made, 0 if no changes are made
+        """
         count = 0
         for x in range(self.SIZE - 1):  # 0, 1, 2
             if self.grid[row_number][x] != 0:
@@ -119,6 +128,7 @@ class Grid(object):
                     if self.grid[row_number][x] == self.grid[row_number][x + y]:
                         self.grid[row_number][x] = self.grid[row_number][x] * 2
                         self.grid[row_number][x + y] = 0
+                        self.score += self.grid[row_number][x]
                         count = 1
                         break
                     elif self.grid[row_number][x + y] != 0 and \
@@ -127,6 +137,11 @@ class Grid(object):
         return count
 
     def merge_column_up(self, column_number):
+        """
+        Merges a single column up
+        :param column_number: Column number that is to be merged
+        :return: 1 if changes are made, 0 if no changes are made
+        """
         count = 0
         for x in range(self.SIZE - 1):
             if self.grid[x][column_number] != 0:
@@ -134,6 +149,7 @@ class Grid(object):
                     if self.grid[x][column_number] == self.grid[x + y][column_number]:
                         self.grid[x][column_number] = self.grid[x][column_number] * 2
                         self.grid[x + y][column_number] = 0
+                        self.score += self.grid[x][column_number]
                         count = 1
                         break
                     elif self.grid[x + y][column_number] != 0 and \
@@ -142,6 +158,11 @@ class Grid(object):
         return count
 
     def merge_column_down(self, column_number):
+        """
+        Merges a single column down
+        :param column_number: Column number that is to be merged
+        :return: 1 if changes are made, 0 if no changes are made
+        """
         count = 0
         for x in reversed(range(1, self.SIZE)):  # 3, 2, 1
             if self.grid[x][column_number] != 0:
@@ -149,6 +170,7 @@ class Grid(object):
                     if self.grid[x][column_number] == self.grid[x - y][column_number]:
                         self.grid[x][column_number] = self.grid[x][column_number] * 2
                         self.grid[x - y][column_number] = 0
+                        self.score += self.grid[x][column_number]
                         count = 1
                         break
                     elif self.grid[x - y][column_number] != 0 and \
@@ -157,6 +179,11 @@ class Grid(object):
         return count
 
     def merge_row_right(self, row_number):
+        """
+        Merges a single row right
+        :param row_number: Row number that is to be merged
+        :return: 1 if changes are made, 0 if no changes are made
+        """
         count = 0
         for x in reversed(range(1, self.SIZE)):
             if self.grid[row_number][x] != 0:
@@ -164,6 +191,7 @@ class Grid(object):
                     if self.grid[row_number][x] == self.grid[row_number][x - y]:
                         self.grid[row_number][x] = self.grid[row_number][x] * 2
                         self.grid[row_number][x - y] = 0
+                        self.score += self.grid[row_number][x]
                         count = 1
                         break
                     elif self.grid[row_number][x - y] != 0 and \
@@ -172,6 +200,10 @@ class Grid(object):
         return count
 
     def move_up(self):
+        """
+        Moves all numbers in the grid to the up-most position
+        :return: 1 if changes are made, 0 if no changes are made
+        """
         count = 0
         # For each column: up
         # Starting from 2nd most 'up' part (smallest)
@@ -195,6 +227,10 @@ class Grid(object):
         return count
 
     def move_down(self):
+        """
+        Moves all numbers in the grid to the down-most position
+        :return: 1 if changes are made, 0 if no changes are made
+        """
         count = 0
         # For each column: down
         # Starting from 2nd most 'down' part (down)
@@ -218,6 +254,10 @@ class Grid(object):
         return count
 
     def move_left(self):
+        """
+        Moves all numbers in the grid to the left-most position
+        :return: 1 if changes are made, 0 if no changes are made
+        """
         count = 0
         # For each row (x)
         # Starting from 2nd most 'left' part (smallest) (column) (y)
@@ -241,6 +281,10 @@ class Grid(object):
         return count
 
     def move_right(self):
+        """
+        Moves all numbers in the grid to the right-most position
+        :return: 1 if changes are made, 0 if no changes are made
+        """
         count = 0
         # For each row (x)
         # Starting from 2nd most 'right' part (largest) (column) (y)
@@ -264,6 +308,11 @@ class Grid(object):
         return count
 
     def move(self):
+        """
+        Depending on input, moves grid up, down, left or right.
+        Then if board changed at all, add a random number at a random empty space.
+        :return:
+        """
         direction = self.ask_for_direction()
         count = 0
         if direction == 'up':
@@ -281,8 +330,13 @@ class Grid(object):
         # Invalid move if count == 0
         if count != 0:
             self.random_number_at_a_space()
+        return
 
     def random_number_at_a_space(self):
+        """
+        Puts a random between 2 or 4 at a random empty square
+        :return:
+        """
         storage = []
         for x in range(self.SIZE):
             for y in range(self.SIZE):
@@ -293,21 +347,12 @@ class Grid(object):
         return
 
     def check_loss(self):
+        """
+        Check if game is lost (all grids filled up)
+        :return: True/False
+        """
         for x in range(self.SIZE):
             for y in range(self.SIZE):
                 if self.grid[x][y] == 0:
                     return False
         return True
-
-    def find_score(self):
-        score = 0
-        for x in range(self.SIZE):
-            for y in range(self.SIZE):
-                if self.grid[x][y] > score:
-                    score = self.grid[x][y]
-        return score
-
-
-
-
-
